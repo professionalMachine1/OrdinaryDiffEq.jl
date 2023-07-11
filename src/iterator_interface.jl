@@ -14,11 +14,15 @@
         @inbounds perform_step!(integrator, integrator.cache)
         @inbounds loopfooter!(integrator)
         @inbounds while !integrator.accept_step
+            dt = integrator.dt
             loopheader!(integrator)
             (integrator.do_error_check && check_error!(integrator) != ReturnCode.Success) &&
                 return
             perform_step!(integrator, integrator.cache)
             loopfooter!(integrator)
+            if integrator.dt <= integrator.opts.dtmin && dt <= integrator.opts.dtmin
+                error("Integrator looped. No progress")
+            end
         end
     end
     @inbounds handle_tstop!(integrator)
